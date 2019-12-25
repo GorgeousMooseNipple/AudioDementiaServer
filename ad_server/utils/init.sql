@@ -15,7 +15,7 @@ pass_hash VARCHAR(64) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS playlist (
-ud SERIAL PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 title VARCHAR(64) NOT NULL,
 song_count BIGINT,
 user_id BIGINT,
@@ -25,7 +25,7 @@ FOREIGN KEY (user_id) REFERENCES app_user(id) ON DELETE CASCADE
 CREATE TABLE IF NOT EXISTS album (
 id SERIAL PRIMARY KEY,
 title VARCHAR(64) NOT NULL,
-year YEAR(4),
+year SMALLINT,
 cover_small VARCHAR(256),
 cover_medium VARCHAR(256)
 );
