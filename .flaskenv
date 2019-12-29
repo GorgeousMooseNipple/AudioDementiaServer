@@ -1,1 +1,1 @@
-FLASK_APP=ad_server/app.py
+FLASK_APP=run.py
