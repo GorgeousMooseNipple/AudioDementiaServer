@@ -8,12 +8,13 @@ from ad_server import db
 
 
 class BaseModel:
-    def to_dict(self):
+    @classmethod
+    def to_dict(cls):
         d = {}
-        for attr in self.__class__.__dict__.keys():
+        for attr in cls.__dict__.keys():
             if attr.startswith('_'):
                 continue
-            val = getattr(self, attr)
+            val = getattr(cls, attr)
             if callable(val):
                 continue
             d[attr] = val
@@ -32,12 +33,12 @@ class Song(db.Model, BaseModel):
     __tablename__ = 'song'
     id = db.Column('id', db.Integer, primary_key=True, nullable=False)
     title = db.Column('title', db.String(64), nullable=False)
-    file_path = db.Column('file_path', db.String(128), nullable=False)
+    filepath = db.Column('filepath', db.String(128), nullable=False)
     duration = db.Column('duration', db.Integer)
     album_position = db.Column('album_position', db.SmallInteger)
-    listens_count = db.Column('listens_count', db.Integer)
+    listens_count = db.Column('listens_count', db.Integer, default=0)
     artist_id = db.Column('artist_id', db.Integer, db.ForeignKey('artist.id'), nullable=False)
-    album_id = db.Column('album_id', db.Integer, db.ForeignKey('album.id'), nullable=False)
+    album_id = db.Column('album_id', db.Integer, db.ForeignKey('album.id'))
 
 
 class Artist(db.Model, BaseModel):
@@ -45,23 +46,25 @@ class Artist(db.Model, BaseModel):
     id = db.Column('id', db.Integer, primary_key=True, nullable=False)
     title = db.Column('title', db.String(64), nullable=False, unique=True)
     songs = db.relationship('Song', backref='artist', lazy='dynamic')
+    albums = db.relationship('Album', secondary='album_artist', back_populates='artists')
 
 
 class Album(db.Model, BaseModel):
     __tablename__ = 'album'
     id = db.Column('id', db.Integer, primary_key=True, nullable=False)
-    title = db.Column('title', db.String(64), nullable=False)
+    title = db.Column('title', db.String(64), nullable=False, default='unknown')
     year = db.Column('year', db.SmallInteger)
     cover_small = db.Column('cover_small', db.String(256))
     cover_medium = db.Column('cover_medium', db.String(256))
     songs = db.relationship('Song', backref='album', lazy='dynamic')
     genres = db.relationship('Genre', secondary='album_genre', back_populates='albums')
+    artists = db.relationship('Artist', secondary='album_artist', back_populates='albums')
 
 
 class Genre(db.Model, BaseModel):
     __tablename__ = 'genre'
     id = db.Column('id', db.Integer, primary_key=True, nullable=False, unique=True)
-    title = db.Column('title', db.String(64), nullable=False)
+    title = db.Column('title', db.String(64), nullable=False, unique=True)
     albums = db.relationship('Album', secondary='album_genre', back_populates='genres')
 
 
@@ -72,7 +75,7 @@ class AlbumGenre(db.Model, BaseModel):
     genre_id = db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), nullable=False)
 
 
-class Playlist(db.Model):
+class Playlist(db.Model, BaseModel):
     __tablename__ = 'playlist'
     id = db.Column('id', db.Integer, primary_key=True, nullable=False)
     title = db.Column('title', db.String(64), nullable=False)
