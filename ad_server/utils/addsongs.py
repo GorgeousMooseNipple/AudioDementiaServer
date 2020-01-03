@@ -4,7 +4,6 @@ import re
 from mutagen.mp3 import EasyMP3
 from ad_server.config import Config
 from ad_server.models import (
-    db,
     Song,
     Artist,
     Album,
@@ -12,7 +11,7 @@ from ad_server.models import (
 )
 from lastfm_api import search_on_lastfm
 from datetime import datetime
-from ad_server import create_app
+from ad_server import create_app, db
 
 app = create_app(Config)
 app.app_context().push()
