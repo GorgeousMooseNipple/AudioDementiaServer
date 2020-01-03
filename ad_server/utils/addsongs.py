@@ -19,16 +19,19 @@ app.app_context().push()
 db.init_app(app)
 
 SONGS_FOLDER = Config.DATA_LOCATION
-UNPROCESSED_FOLDER = os.path.join(SONGS_FOLDER, f'{datetime.now().strftime("%Y-%m-%d")}unprocessed')
+UNPROCESSED_FOLDER = os.path.join(
+    SONGS_FOLDER, f'{datetime.now().strftime("%Y-%m-%d")}unprocessed')
 ADDED_FOLDER = os.path.join(SONGS_FOLDER, 'added')
 
-reg = re.compile(r'\s*([\s\w\d\-&\.]*[\w\d])\s*[/,;\\]?')
+reg = re.compile(r'\s*([\s\w\d\-&\.\']*[\w\d])\s*[/,;\\]?')
 
 for f in os.listdir(SONGS_FOLDER):
+
     if not os.path.isfile(os.path.join(SONGS_FOLDER, f)):
         continue
     elif os.path.splitext(f)[1] != '.mp3':
         continue
+
     filepath = os.path.abspath(os.path.join(SONGS_FOLDER, f))
 
     songfile = EasyMP3(filepath)
@@ -39,10 +42,9 @@ for f in os.listdir(SONGS_FOLDER):
         int(songfile.tags.get('tracknumber')[0].split('/')[0])
     duration = songfile.info.length
     genres_titles = songfile.tags.get('genre') and \
-        songfile.tags.get('genre')[0]
+        reg.findall(songfile.tags.get('genre')[0])
     artists_titles = songfile.tags.get('artist') and \
-        songfile.tags.get('artist')[0]
-
+        reg.findall(songfile.tags.get('artist')[0])
 
     if not title or not artists_titles or len(artists_titles) == 0:
         if not os.path.exists(UNPROCESSED_FOLDER):
@@ -50,7 +52,6 @@ for f in os.listdir(SONGS_FOLDER):
         shutil.move(filepath, os.path.join(UNPROCESSED_FOLDER, f))
         continue
 
-    artists_titles = reg.findall(artists_titles)
     artists = []
 
     for artist_title in artists_titles:
@@ -64,27 +65,32 @@ for f in os.listdir(SONGS_FOLDER):
 
     try:
         if not album_title:
-            track_info = search_on_lastfm(title, artist_title, searchfor='track')
+            track_info = search_on_lastfm(
+                searchfor='track', track=title, artist=artists_titles[0]
+                )
             album_title = track_info['album']['title']
 
         album = Album.query.filter_by(title=album_title) \
                      .join(Album.artists).filter_by(title=artist_title).first()
         if not album:
-            album_info = search_on_lastfm(album_title, artist_title, searchfor='album')
+            album_info = search_on_lastfm(
+                searchfor='album', album=album_title, artist=artists_titles[0]
+                )
             cover_small = album_info.get('image')[1].get('#text')
             cover_medium = album_info.get('image')[2].get('#text')
             album = Album(
                 title=album_title,
                 cover_small=cover_small,
                 cover_medium=cover_medium)
+            album.artists.extend(
+                [a for a in artists if a not in album.artists]
+                )
             db.session.add(album)
 
     except ConnectionError as e:
         print(repr(e))
 
     if album and genres_titles:
-        genres_titles = reg.findall(genres_titles)
-        album.artists.extend([a for a in artists if a not in album.artists])
         genres = []
         for genre_title in genres_titles:
             genre = Genre.query.filter_by(title=genre_title).first()
@@ -106,6 +112,7 @@ for f in os.listdir(SONGS_FOLDER):
         album=album)
     db.session.add(song)
     db.session.commit()
+
     if not os.path.exists(ADDED_FOLDER):
         os.mkdir(ADDED_FOLDER)
     shutil.move(filepath, os.path.join(ADDED_FOLDER, f))

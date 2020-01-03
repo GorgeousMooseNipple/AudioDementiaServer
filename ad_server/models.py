@@ -8,13 +8,12 @@ from ad_server import db
 
 
 class BaseModel:
-    @classmethod
-    def to_dict(cls):
+    def to_dict(self):
         d = {}
-        for attr in cls.__dict__.keys():
+        for attr in self.__class__.__dict__.keys():
             if attr.startswith('_'):
                 continue
-            val = getattr(cls, attr)
+            val = getattr(self, attr)
             if callable(val):
                 continue
             d[attr] = val
