@@ -1,4 +1,6 @@
 from ad_server import db
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 
 # from sqlalchemy import MetaData
@@ -20,12 +22,23 @@ class BaseModel:
         return d
 
 
-class User(db.Model, BaseModel):
+class User(db.Model, BaseModel, UserMixin):
     __tablename__ = 'app_user'
     id = db.Column('id', db.Integer, primary_key=True, nullable=False)
     login = db.Column('login', db.String(64), nullable=False, unique=True)
-    pass_hash = db.Column('pass_hash', db.String(64), nullable=False)
+    pass_hash = db.Column('pass_hash', db.String(128), nullable=False)
     playlists = db.relationship('Playlist', backref='user', lazy='dynamic')
+
+    @property
+    def password(self):
+        raise AttributeError('Password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.pass_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.pass_hash, password)
 
 
 class Song(db.Model, BaseModel):
