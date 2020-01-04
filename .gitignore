@@ -7,3 +7,4 @@ music_storage*
 htmlcov
 .coverage
 .pytest_cache
+test_media

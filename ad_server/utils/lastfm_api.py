@@ -1,9 +1,8 @@
 import requests
-from ad_server.config import Config
+from flask import current_app
 
 
 BASE_URL = 'http://ws.audioscrobbler.com/2.0'
-API_KEY = Config.LAST_FM_API_KEY
 
 searchable = {
     'album':
@@ -17,6 +16,8 @@ searchable = {
 
 def search_on_lastfm(searchfor='track', **kwargs):
 
+    api_key = current_app.config.get('LAST_FM_API_KEY')
+
     if searchfor not in searchable:
         raise ValueError('searchfor must be either track or album')
     else:
@@ -24,7 +25,7 @@ def search_on_lastfm(searchfor='track', **kwargs):
 
     params = {
         'method': api_request.get('method'),
-        'api_key': API_KEY,
+        'api_key': api_key,
         'format': 'json'}
 
     for par in api_request['required']:
