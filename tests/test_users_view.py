@@ -69,15 +69,18 @@ def test_user_registration(test_client):
 def test_user_login(test_client):
     """
     Test for user logging in.
-    Server response is checked and is_authenticaded property of user.
+    Server response is checked and is_authenticated property of user.
     """
+    user = model.User.query.filter_by(login='TestUser').first()
+
+    assert not user.is_authenticated
+
     data = {'login': 'TestUser', 'pass': 'testpass'}
     response = test_client.post(
         '/api/public/auth/login',
         data=json.dumps(data),
         headers={'Content-Type': 'application/json'}
     )
-    user = model.User.query.filter_by(login='TestUser').first()
 
     assert response.status_code == 200
     assert response.json.get('message') == 'Successful login'

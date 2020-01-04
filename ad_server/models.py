@@ -28,6 +28,7 @@ class User(db.Model, BaseModel, UserMixin):
     login = db.Column('login', db.String(64), nullable=False, unique=True)
     pass_hash = db.Column('pass_hash', db.String(128), nullable=False)
     playlists = db.relationship('Playlist', backref='user', lazy='dynamic')
+    authenticated = False
 
     @property
     def password(self):
@@ -39,6 +40,14 @@ class User(db.Model, BaseModel, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.pass_hash, password)
+
+    @property
+    def is_authenticated(self):
+        return self.authenticated
+
+    @is_authenticated.setter
+    def is_authenticated(self, authenticated):
+        self.authenticated = authenticated
 
 
 class Song(db.Model, BaseModel):

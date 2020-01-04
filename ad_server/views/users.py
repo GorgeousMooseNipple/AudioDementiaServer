@@ -26,7 +26,8 @@ def successful_response(message, data=None):
 @users.route('/register', methods=['POST'])
 def register_user():
     if current_user.is_authenticated:
-        pass
+        return errors.bad_request(
+            'You are already authenticated. Please log out.')
     json_request = request.json
     login = json_request.get('login')
     password = json_request.get('pass')
@@ -39,6 +40,7 @@ def register_user():
         user = User(login=login, password=password)
         db.session.add(user)
         db.session.commit()
+        user.is_authenticated = True
         login_user(user, remember=False)
     return successful_response('Successful registration')
 
@@ -46,7 +48,8 @@ def register_user():
 @users.route('/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
-        pass
+        return errors.bad_request(
+            'You are already authenticated. Please log out.')
     json_request = request.json
     login = json_request.get('login')
     password = json_request.get('pass')
@@ -58,10 +61,16 @@ def login():
     elif not user.check_password(password):
         return errors.bad_request('Incorrect password')
     else:
+        user.is_authenticated = True
+        login_user(user, remember=False)
         return successful_response('Successful login')
 
 
 @users.route('/logout', methods=['GET'])
 def logout():
-    logout_user()
-    return successful_response('User logged out')
+    if current_user.is_authenticated:
+        current_user.is_authenticated = False
+        logout_user()
+        return successful_response('User logged out')
+    else:
+        return errors.forbidden('You are not authorized')
