@@ -4,3 +4,6 @@ __pycache__
 music_storage*
 *.db
 *.db-journal
+htmlcov
+.coverage
+.pytest_cache
