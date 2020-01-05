@@ -2,11 +2,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from ad_server.models import User
 import json
 import tests.conftest
+# from flask_login import current_user
 
 
 # TODO: Tests for logging if user is already logged in.
 # Same for registration. Test logout for logged out user.
 test_app = tests.conftest.test_app
+logged_user = tests.conftest.logged_user
 
 
 def test_password_hashing():
@@ -69,5 +71,18 @@ def test_user_login(test_app):
     assert user.is_authenticated
 
 
-def test_user_logout(test_app):
-    pass
+def test_user_logout(test_app, logged_user):
+
+    test_client = test_app['test_client']
+
+    assert logged_user.is_authenticated
+
+    with test_client.session_transaction() as sess:
+        sess['user_id'] = logged_user.id
+        sess['_fresh'] = True
+
+    response = test_client.get('/api/public/auth/logout')
+
+    assert response.status_code == 200
+    assert response.json.get('message') == 'User logged out'
+    assert not logged_user.is_authenticated

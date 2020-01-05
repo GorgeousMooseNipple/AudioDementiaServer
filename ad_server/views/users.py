@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user
 from ad_server.models import User
 from ad_server import login, db
 import ad_server.views.errors as errors
@@ -40,8 +40,7 @@ def register_user():
         user = User(login=login, password=password)
         db.session.add(user)
         db.session.commit()
-        user.is_authenticated = True
-        login_user(user, remember=False)
+        user.login_user()
     return successful_response('Successful registration')
 
 
@@ -61,16 +60,14 @@ def login():
     elif not user.check_password(password):
         return errors.bad_request('Incorrect password')
     else:
-        user.is_authenticated = True
-        login_user(user, remember=False)
+        user.login_user()
         return successful_response('Successful login')
 
 
 @users.route('/logout', methods=['GET'])
 def logout():
     if current_user.is_authenticated:
-        current_user.is_authenticated = False
-        logout_user()
+        current_user.logout_user()
         return successful_response('User logged out')
     else:
         return errors.forbidden('You are not authorized')

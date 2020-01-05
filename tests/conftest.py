@@ -4,8 +4,9 @@ import os
 import shutil
 from ad_server import create_app, db
 from ad_server.config import TestConfig
-import ad_server.models as model
+from ad_server.models import User
 from flask import current_app
+from flask_login import login_user
 
 
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -14,15 +15,20 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 @pytest.fixture(scope='module')
 def test_app():
     app = create_app(TestConfig)
-    context = app.app_context()
+    context = app.test_request_context()
     context.push()
 
     db.create_all()
 
-    user = model.User(login='TestUser', password='testpass')
+    user = User(login='TestUser', password='testpass')
+    logged_user = User(login='LoggedUser', password='testpass')
 
     db.session.add(user)
+    db.session.add(logged_user)
     db.session.commit()
+
+    logged_user.is_authenticated = True
+    login_user(logged_user)
 
     yield {
         'app': app,
@@ -32,6 +38,13 @@ def test_app():
 
     db.drop_all()
     context.pop()
+
+
+@pytest.fixture(scope='function')
+def logged_user():
+    user = User.query.filter_by(login='LoggedUser').first()
+    user.login_user()
+    return user
 
 
 @pytest.fixture(scope='module')

@@ -1,6 +1,6 @@
 from ad_server import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+from flask_login import UserMixin, login_user, logout_user
 
 
 # from sqlalchemy import MetaData
@@ -48,6 +48,14 @@ class User(db.Model, BaseModel, UserMixin):
     @is_authenticated.setter
     def is_authenticated(self, authenticated):
         self.authenticated = authenticated
+
+    def login_user(self):
+        self.is_authenticated = True
+        login_user(self, remember=False)
+
+    def logout_user(self):
+        self.is_authenticated = False
+        logout_user()
 
 
 class Song(db.Model, BaseModel):
