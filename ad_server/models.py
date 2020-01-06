@@ -1,6 +1,7 @@
 from ad_server import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, login_user, logout_user
+import jwt
 
 
 # from sqlalchemy import MetaData
@@ -41,21 +42,11 @@ class User(db.Model, BaseModel, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.pass_hash, password)
 
-    @property
-    def is_authenticated(self):
-        return self.authenticated
+    def get_token(self):
+        pass
 
-    @is_authenticated.setter
-    def is_authenticated(self, authenticated):
-        self.authenticated = authenticated
-
-    def login_user(self):
-        self.is_authenticated = True
-        login_user(self, remember=False)
-
-    def logout_user(self):
-        self.is_authenticated = False
-        logout_user()
+    def revoke_token(self):
+        pass
 
 
 class Song(db.Model, BaseModel):

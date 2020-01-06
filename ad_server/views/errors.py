@@ -26,3 +26,7 @@ def forbidden(message=''):
 
 def not_found(message=''):
     return error(404, message=message)
+
+
+def unauthorized(message=''):
+    return error(401, message=message)

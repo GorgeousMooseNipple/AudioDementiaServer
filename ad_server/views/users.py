@@ -1,16 +1,10 @@
 from flask import Blueprint, request, jsonify
-from flask_login import current_user
 from ad_server.models import User
-from ad_server import login, db
+from ad_server import db
 import ad_server.views.errors as errors
 
 
 users = Blueprint('users', __name__)
-
-
-@login.user_loader
-def load_user(id):
-    return User.query.get(int(id))
 
 
 def successful_response(message, data=None):
