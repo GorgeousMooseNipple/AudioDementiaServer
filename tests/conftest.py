@@ -48,7 +48,7 @@ def logged_user():
 
 
 @pytest.fixture(scope='module')
-def audio_files_fixture():
+def audio_files_fixture(test_app):
 
     media_folder = os.path.join(PWD, 'test_media')
     old_storage = current_app.config['MEDIA_STORAGE']

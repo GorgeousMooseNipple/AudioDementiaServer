@@ -14,7 +14,7 @@ install:
 script:
   - coverage erase
   - coverage run --source ad_server -m pytest && coverage html
-  - flake8 . --exit-zero
+  - flake8 ad_server --exit-zero
 
 after_success:
   - codecov
