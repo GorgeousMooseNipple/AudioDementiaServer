@@ -24,20 +24,20 @@ class ErrorMessage(Message):
         return self.send_message(400, message=message)
 
     def internal_error(self, message=''):
-        return self.error_msg(500, message=message)
+        return self.send_message(500, message=message)
 
     def forbidden(self, message=''):
-        return self.error_msg(403, message=message)
+        return self.send_message(403, message=message)
 
     def not_found(self, message=''):
-        return self.error_msg(404, message=message)
+        return self.send_message(404, message=message)
 
     def unauthorized(self, message=''):
-        return self.error_msg(401, message=message)
+        return self.send_message(401, message=message)
 
 
 errors = ErrorMessage()
 
 
-def success(message='', **kwargs):
-    return Message.send_message(message, **kwargs)
+def success(message='', status_code=200, **kwargs):
+    return Message.send_message(status_code, message, **kwargs)

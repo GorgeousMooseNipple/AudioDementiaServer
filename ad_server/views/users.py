@@ -1,7 +1,7 @@
-from flask import Blueprint, request
-from ad_server.models import User
+from flask import Blueprint, request, g
+from ad_server.models import User, RefreshToken
 from ad_server import db
-from ad_server.views.auth import basic_auth, token_auth
+from ad_server.views.auth import basic_auth, generate_token
 import ad_server.views.messages as msg
 
 
@@ -25,13 +25,42 @@ def register_user():
     return msg.success('Successful registration')
 
 
-@users.route('/token/access', methods=['POST'])
+@users.route('/token', methods=['POST'])
 @basic_auth.login_required
 def get_token():
-    pass
+    user = g.current_user
+    access_token = generate_token(user.id)
+    refreh_token = RefreshToken.create(user.id)
+    db.session.commit()
+    return msg.success(
+        message='Access token retrieved',
+        access_token=access_token,
+        refresh_token=refreh_token)
 
 
 @users.route('/token/refresh', methods=['POST'])
-@token_auth.login_required
-def refreh_token():
-    pass
+def refresh_token():
+    json_request = request.json
+    refresh_token = json_request.get('refresh_token')
+    if not refresh_token:
+        return msg.errors.bad_request(
+            'You should provide refresh token for this call')
+    refresh_token_obj = RefreshToken.valid_token(refresh_token)
+    if not refresh_token_obj:
+        return msg.errors.unauthorized('Provided token is not valid')
+    access_token = generate_token(refresh_token_obj.user_id)
+    return msg.success(
+        message='Access token retrieved',
+        access_token=access_token)
+
+
+@users.route('/token/revoke', methods=['POST'])
+def revoke_token():
+    json_request = request.json
+    refresh_token = json_request.get('refresh_token')
+    if not refresh_token:
+        return msg.errors.bad_request(
+            'You should provide refresh token for this call')
+    RefreshToken.revoke(refresh_token)
+    db.session.commit()
+    return msg.success('Token is successfully revoked')
