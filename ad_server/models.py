@@ -1,8 +1,8 @@
 from ad_server import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import current_app
 from datetime import datetime, timedelta
-import jwt
+import os
+import base64
 
 
 # from sqlalchemy import MetaData
@@ -30,7 +30,6 @@ class User(db.Model, BaseModel):
     login = db.Column('login', db.String(64), nullable=False, unique=True)
     pass_hash = db.Column('pass_hash', db.String(128), nullable=False)
     playlists = db.relationship('Playlist', backref='user', lazy='dynamic')
-    authenticated = False
 
     @property
     def password(self):
@@ -42,21 +41,6 @@ class User(db.Model, BaseModel):
 
     def check_password(self, password):
         return check_password_hash(self.pass_hash, password)
-
-    def generate_token(self, expires_in=30):
-        payload = {
-            'id': self.id,
-            'exp': datetime.utcnow() + timedelta(minutes=expires_in)
-            }
-        secret = current_app.config.get('SECRET_KEY')
-        return jwt.encode(payload, secret, algorithm='HS256')
-
-    @staticmethod
-    def validate_token(token):
-        secret = current_app.config.get('SECRET_KEY')
-        payload = jwt.decode(token, secret, algorithms='HS256')
-        id = payload.get('id')
-        return User.query.get(int(id))
 
 
 class Song(db.Model, BaseModel):
@@ -141,3 +125,48 @@ class PlaylistSong(db.Model, BaseModel):
                         db.ForeignKey('playlist.id'))
     song_id = db.Column('song_id', db.Integer, db.ForeignKey('song.id'))
     song_position = db.Column('song_position', db.Integer)
+
+
+class RefreshToken(db.Model):
+    __tablename__ = 'refresh_token'
+    token = db.Column('token', db.String(32), primary_key=True)
+    expiration_date = db.Column(
+        'expiration_date', db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(
+        'user_id', db.Integer, db.ForeignKey('app_user.id'),
+        nullable=False, unique=True)
+
+    @staticmethod
+    def create(user_id, expires_in=timedelta(weeks=24)):
+        if isinstance(expires_in, int):
+            delta = timedelta(weeks=expires_in)
+        elif isinstance(expires_in, timedelta):
+            delta = expires_in
+        else:
+            raise TypeError(
+                'expires_in value must be either integer in weeks or'
+                'datetime.timedelta'
+            )
+        token = base64.b64encode(os.urandom(24)).decode('utf-8')
+        expiration_date = datetime.utcnow() + delta
+        refresh_token = RefreshToken(
+            token=token,
+            user_id=user_id,
+            expiration_date=expiration_date)
+        db.session.add(refresh_token)
+        return token
+
+    @staticmethod
+    def valid_token(token):
+        refresh_token = RefreshToken.query.get(token)
+        if refresh_token and datetime.utcnow() < refresh_token.expiration_date:
+            return refresh_token
+        return None
+
+    @staticmethod
+    def revoke(token):
+        RefreshToken.query.filter_by(token=token).delete()
+
+    @staticmethod
+    def get_user(token):
+        User.query.join(RefreshToken).filter_by(token=token).first()
