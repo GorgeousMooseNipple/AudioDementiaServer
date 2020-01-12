@@ -81,7 +81,7 @@ def test_user_logout(test_app, logged_user):
         sess['user_id'] = logged_user.id
         sess['_fresh'] = True
 
-        response = test_client.get('/api/public/auth/logout')
+    response = test_client.get('/api/public/auth/logout')
 
     assert response.status_code == 200
     assert response.json.get('message') == 'User logged out'

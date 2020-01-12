@@ -1,6 +1,7 @@
 from ad_server import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, login_user, logout_user
+from flask import current_app
+from datetime import datetime, timedelta
 import jwt
 
 
@@ -23,7 +24,7 @@ class BaseModel:
         return d
 
 
-class User(db.Model, BaseModel, UserMixin):
+class User(db.Model, BaseModel):
     __tablename__ = 'app_user'
     id = db.Column('id', db.Integer, primary_key=True, nullable=False)
     login = db.Column('login', db.String(64), nullable=False, unique=True)
@@ -42,11 +43,20 @@ class User(db.Model, BaseModel, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.pass_hash, password)
 
-    def get_token(self):
-        pass
+    def generate_token(self, expires_in=30):
+        payload = {
+            'id': self.id,
+            'exp': datetime.utcnow() + timedelta(minutes=expires_in)
+            }
+        secret = current_app.config.get('SECRET_KEY')
+        return jwt.encode(payload, secret, algorithm='HS256')
 
-    def revoke_token(self):
-        pass
+    @staticmethod
+    def validate_token(token):
+        secret = current_app.config.get('SECRET_KEY')
+        payload = jwt.decode(token, secret, algorithms='HS256')
+        id = payload.get('id')
+        return User.query.get(int(id))
 
 
 class Song(db.Model, BaseModel):
