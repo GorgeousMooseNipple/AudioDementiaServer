@@ -179,3 +179,24 @@ def test_access_with_invalid_token(test_app):
     assert response.status_code == 401
     assert response.json.get('message') ==\
         'Invalid token'
+
+
+def test_access_with_valid_token(test_app, user_with_tokens):
+    """
+    Make call to test API endpoint which requires access  with valid token.
+    Just in case.
+    """
+    test_client = test_app['test_client']
+
+    access_token = user_with_tokens[1]
+
+    headers = {'Authorization': f'Bearer {access_token}'}
+
+    response = test_client.get(
+        '/test/token/access',
+        headers=headers
+        )
+
+    assert response.status_code == 200
+    assert response.json.get('message') ==\
+        'Successful API call with token required'

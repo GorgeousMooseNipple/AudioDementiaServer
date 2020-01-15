@@ -68,9 +68,9 @@ def verify_token(token):
 def token_auth_error():
     try:
         excp = g.token_exception
-        if isinstance(excp, jwt.InvalidTokenError):
-            return msg.errors.unauthorized('Invalid token')
-        elif isinstance(excp, jwt.ExpiredSignatureError):
+        if isinstance(excp, jwt.ExpiredSignatureError):
             return msg.errors.unauthorized('Token has expired')
+        elif isinstance(excp, jwt.InvalidTokenError):
+            return msg.errors.unauthorized('Invalid token')
     except AttributeError:
         return msg.errors.unauthorized('Token verification failed')

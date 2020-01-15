@@ -25,7 +25,7 @@ def register_user():
     return msg.success('Successful registration')
 
 
-@users.route('/token', methods=['POST'])
+@users.route('/token', methods=['GET'])
 @basic_auth.login_required
 def get_token():
     user = g.current_user

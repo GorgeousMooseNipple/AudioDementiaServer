@@ -6,7 +6,7 @@ class Message:
     @staticmethod
     def send_message(status_code, message, **kwargs):
         response_data = {
-            'status_code': HTTP_STATUS_CODES.get(
+            'status': HTTP_STATUS_CODES.get(
                 status_code, 'Internal Server Error'),
             'message': message
         }

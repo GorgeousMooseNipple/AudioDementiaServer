@@ -90,7 +90,7 @@ def user_with_tokens():
 
 
 @pytest.fixture(scope='module')
-def audio_files_fixture(test_app):
+def audio_files_fixture():
     """
     This fixture downloads and prepares mp3 files for tests
     to test adding such files into database
