@@ -60,7 +60,7 @@ def test_get_token(test_app):
         bytes(login + ':' + password, 'utf-8')).decode('utf-8')
 
     headers = {'Authorization': f'Basic {auth}'}
-    response = test_client.post(
+    response = test_client.get(
         '/api/public/auth/token',
         headers=headers
     )
