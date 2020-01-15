@@ -77,8 +77,9 @@ def add_songs_to_db(target_folder, db):
                     album=album_title,
                     artist=artists_titles[0]
                     )
-                cover_small = album_info.get('image')[1].get('#text')
-                cover_medium = album_info.get('image')[2].get('#text')
+                # Changed this line to get bigger cover sizes
+                cover_small = album_info.get('image')[2].get('#text')
+                cover_medium = album_info.get('image')[3].get('#text')
                 album = Album(
                     title=album_title,
                     cover_small=cover_small,
