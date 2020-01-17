@@ -2,13 +2,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from ad_server.models import User
 from ad_server.models import RefreshToken
 import json
-import tests.conftest as fix
 import base64
 import time
-
-
-test_app = fix.test_app
-user_with_tokens = fix.user_with_tokens
 
 
 def test_password_hashing():
@@ -19,7 +14,7 @@ def test_password_hashing():
     assert check_password_hash(generted_hash, password)
 
 
-def test_get_created_user(test_app):
+def test_get_created_user():
     """
     Test if sqlite database created in fixture is working
     and user named TestUser has been created
@@ -29,12 +24,11 @@ def test_get_created_user(test_app):
     assert user
 
 
-def test_user_registration(test_app):
+def test_user_registration(test_client):
     """
     Test new user registration.
     Server response and creation of new user record in database is tested here.
     """
-    test_client = test_app['test_client']
 
     data = {'login': 'TestUser2', 'pass': 'testpass'}
     response = test_client.post(
@@ -47,11 +41,10 @@ def test_user_registration(test_app):
     assert User.query.filter_by(login='TestUser2').first()
 
 
-def test_get_token(test_app):
+def test_get_token(test_client):
     """
     Testing process of retrieving access and refresh tokens by registered user.
     """
-    test_client = test_app['test_client']
 
     login = 'TestUser'
     password = 'testpass'
@@ -81,12 +74,11 @@ def test_get_token(test_app):
     assert message == 'Access token retrieved'
 
 
-def test_refresh_token(test_app, user_with_tokens):
+def test_refresh_token(test_client, user_with_tokens):
     """
     Test process of getting new access token by
     sending request with refresh token.
     """
-    test_client = test_app['test_client']
     user, access, refresh = user_with_tokens
 
     # Wait 2 second just so new access token will be created using different
@@ -123,11 +115,10 @@ def test_refresh_token(test_app, user_with_tokens):
     assert new_access_token != access
 
 
-def test_revoke_token(test_app, user_with_tokens):
+def test_revoke_token(test_client, user_with_tokens):
     """
     Test revoking refresh token
     """
-    test_client = test_app['test_client']
     user, access, refresh = user_with_tokens
 
     response = test_client.post(
@@ -150,11 +141,10 @@ def test_revoke_token(test_app, user_with_tokens):
     assert RefreshToken.valid_token(refresh) is None
 
 
-def test_access_without_token(test_app):
+def test_access_without_token(test_client):
     """
     Make call to test API endpoint which requires access token without token.
     """
-    test_client = test_app['test_client']
 
     response = test_client.get('/test/token/access')
 
@@ -163,11 +153,10 @@ def test_access_without_token(test_app):
         'Token verification failed'
 
 
-def test_access_with_invalid_token(test_app):
+def test_access_with_invalid_token(test_client):
     """
     Make call to test API endpoint which requires access  with invalid token
     """
-    test_client = test_app['test_client']
 
     headers = {'Authorization': 'Bearer verynotvalidtoken'}
 
@@ -181,12 +170,11 @@ def test_access_with_invalid_token(test_app):
         'Invalid token'
 
 
-def test_access_with_valid_token(test_app, user_with_tokens):
+def test_access_with_valid_token(test_client, user_with_tokens):
     """
     Make call to test API endpoint which requires access  with valid token.
     Just in case.
     """
-    test_client = test_app['test_client']
 
     access_token = user_with_tokens[1]
 

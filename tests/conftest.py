@@ -27,21 +27,16 @@ class TestClient(testing.FlaskClient):
         return super().open(*args, **kwargs)
 
 
-@pytest.fixture(scope='module')
-def test_app():
+@pytest.fixture(scope='session')
+def app():
     """
-    This module level fixture creates test application and sqlite database
-    Gives test functions access to application, database and test client
+    Hmmm
     """
     app = create_app(TestConfig)
     context = app.test_request_context()
     context.push()
 
-    # Add fake endpoint wich require token for access
-    @app.route('/test/token/access', methods=['GET'])
-    @token_auth.login_required
-    def test_token_access():
-        return msg.success('Successful API call with token required')
+    app.test_client_class = TestClient
 
     db.create_all()
 
@@ -52,20 +47,34 @@ def test_app():
     db.session.add(logged_user)
     db.session.commit()
 
-    app.test_client_class = TestClient
-    test_client = app.test_client()
-    headers = {'Content-Type': 'application/json'}
-    test_client.options(headers=headers)
-
-    yield {
-        'app': app,
-        'test_client': app.test_client(),
-        'db': db
-        }
+    yield app
 
     db.drop_all()
     os.remove(os.path.join(PWD, 'test.db'))
     context.pop()
+
+
+@pytest.fixture(scope='function')
+def test_client(app):
+
+    with app.test_client() as client:
+        return client
+
+
+@pytest.fixture(scope='session', autouse=True)
+def token_endpoint(app):
+    """
+    Creates fake api endpoint which requires token to access
+    """
+    @app.route('/test/token/access', methods=['GET'])
+    @token_auth.login_required
+    def test_token_access():
+        return msg.success('Successful API call with token required')
+
+
+@pytest.fixture(scope='function')
+def app_db(app):
+    return db
 
 
 @pytest.fixture(scope='function')
@@ -90,7 +99,7 @@ def user_with_tokens():
 
 
 @pytest.fixture(scope='module')
-def audio_files_fixture():
+def audio_storage():
     """
     This fixture downloads and prepares mp3 files for tests
     to test adding such files into database
