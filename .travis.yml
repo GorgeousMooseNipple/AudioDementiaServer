@@ -13,7 +13,7 @@ install:
 
 script:
   - coverage erase
-  - coverage run --source ad_server -m pytest && coverage html
+  - coverage run --source ad_server -m pytest -v && coverage html
   - flake8 ad_server --exit-zero
 
 after_success:

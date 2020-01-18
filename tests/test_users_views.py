@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from ad_server.models import User
 from ad_server.models import RefreshToken
+from flask import url_for
 import json
 import base64
 import time
@@ -24,15 +25,15 @@ def test_get_created_user():
     assert user
 
 
-def test_user_registration(test_client):
+def test_user_registration(test_client_json):
     """
     Test new user registration.
     Server response and creation of new user record in database is tested here.
     """
 
     data = {'login': 'TestUser2', 'pass': 'testpass'}
-    response = test_client.post(
-        '/api/public/auth/register',
+    response = test_client_json.post(
+        url_for('users.register_user'),
         data=json.dumps(data)
         )
 
@@ -54,7 +55,7 @@ def test_get_token(test_client):
 
     headers = {'Authorization': f'Basic {auth}'}
     response = test_client.get(
-        '/api/public/auth/token',
+        url_for('users.get_token'),
         headers=headers
     )
 
@@ -74,7 +75,7 @@ def test_get_token(test_client):
     assert message == 'Access token retrieved'
 
 
-def test_refresh_token(test_client, user_with_tokens):
+def test_refresh_token(test_client_json, user_with_tokens):
     """
     Test process of getting new access token by
     sending request with refresh token.
@@ -85,8 +86,8 @@ def test_refresh_token(test_client, user_with_tokens):
     # expiration time parameter and so won't be the same as the old one
     time.sleep(2)
 
-    response = test_client.post(
-        'api/public/auth/token/refresh',
+    response = test_client_json.post(
+        url_for('users.refresh_token'),
         data=json.dumps({'no_refresh_token': None})
     )
 
@@ -94,8 +95,8 @@ def test_refresh_token(test_client, user_with_tokens):
     assert response.json.get('message') == \
         'You should provide refresh token for this call'
 
-    response = test_client.post(
-        'api/public/auth/token/refresh',
+    response = test_client_json.post(
+        url_for('users.refresh_token'),
         data=json.dumps({'refresh_token': 'invalid'})
     )
 
@@ -103,8 +104,8 @@ def test_refresh_token(test_client, user_with_tokens):
     assert response.json.get('message') == \
         'Provided token is not valid'
 
-    response = test_client.post(
-        'api/public/auth/token/refresh',
+    response = test_client_json.post(
+        url_for('users.refresh_token'),
         data=json.dumps({'refresh_token': refresh})
     )
 
@@ -115,21 +116,21 @@ def test_refresh_token(test_client, user_with_tokens):
     assert new_access_token != access
 
 
-def test_revoke_token(test_client, user_with_tokens):
+def test_revoke_token(test_client_json, user_with_tokens):
     """
     Test revoking refresh token
     """
     user, access, refresh = user_with_tokens
 
-    response = test_client.post(
-        '/api/public/auth/token/revoke',
+    response = test_client_json.post(
+        url_for('users.revoke_token'),
         data=json.dumps({'refresh_token': None})
     )
 
     assert response.status_code == 400
 
-    response = test_client.post(
-        '/api/public/auth/token/revoke',
+    response = test_client_json.post(
+        url_for('users.revoke_token'),
         data=json.dumps({'refresh_token': refresh})
     )
 
@@ -146,7 +147,7 @@ def test_access_without_token(test_client):
     Make call to test API endpoint which requires access token without token.
     """
 
-    response = test_client.get('/test/token/access')
+    response = test_client.get(url_for('test_token_access'))
 
     assert response.status_code == 401
     assert response.json.get('message') ==\
@@ -161,7 +162,7 @@ def test_access_with_invalid_token(test_client):
     headers = {'Authorization': 'Bearer verynotvalidtoken'}
 
     response = test_client.get(
-        '/test/token/access',
+        url_for('test_token_access'),
         headers=headers
         )
 
@@ -181,7 +182,7 @@ def test_access_with_valid_token(test_client, user_with_tokens):
     headers = {'Authorization': f'Bearer {access_token}'}
 
     response = test_client.get(
-        '/test/token/access',
+        url_for('test_token_access'),
         headers=headers
         )
 

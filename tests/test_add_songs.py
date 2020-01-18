@@ -1,5 +1,5 @@
 from ad_server.utils.addsongs import add_songs_to_db
-from ad_server.models import Song, Album, Genre
+from ad_server.models import Song, Album, Genre, AlbumGenre, AlbumArtist
 import os
 
 
@@ -7,12 +7,11 @@ def test_script_adding_songs_to_db(app, app_db, audio_storage):
 
     add_songs_to_db(audio_storage, app_db)
 
-    # Script should've added two songs from test folder to db
-    assert Song.query.count() == 2
-    # One new album
-    assert Album.query.count() == 1
-    # Two new genres
-    assert Genre.query.count() == 2
+    assert Song.query.count() != 0
+    assert Album.query.count() != 0
+    assert Genre.query.count() != 0
+    assert AlbumArtist.query.count() != 0
+    assert AlbumGenre.query.count() != 0
 
     album = Album.query.first()
 
