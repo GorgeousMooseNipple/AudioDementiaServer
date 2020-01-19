@@ -95,10 +95,14 @@ class Song(db.Model, BaseModel):
             'duration': self.duration,
         }
 
-        artist = self.artist.title if self.artist else 'unknown'
+        artists = []
+        if self.album:
+            artists.extend([a.title for a in self.album.artists])
+        else:
+            artists.append(self.artist.title)
         album = self.album.title if self.album else 'unknown'
 
-        d['artist'] = artist
+        d['artists'] = artists
         d['album'] = album
 
         return d

@@ -59,7 +59,7 @@ def test_get_songs_from_playlist(test_client, user_with_playlist, fill_db):
     user, _, _ = user_with_playlist
     playlist = user.playlists[0]
 
-    params = {'id': playlist.id}
+    params = {'id': playlist.id, 'per_page': playlist.songs.count()}
 
     response = test_client.get(
         url_for('media.playlist_songs'), query_string=params)
@@ -82,7 +82,7 @@ def test_get_songs_from_genre(test_client, fill_db):
 
     response = test_client.get(
         url_for('media.genre_songs'),
-        query_string={'id': genre.id}
+        query_string={'id': genre.id, 'per_page': genre_songs_count}
     )
 
     assert response.status_code == 200
@@ -152,7 +152,7 @@ def test_search_songs_by_artist_title(test_client, songs_for_search, fill_db):
     assert len(songs) == len(search_songs)
 
     for s in songs:
-        assert s['artist'] == artist.title
+        assert artist.title in s['artists']
 
 
 def test_stream_song(test_client, fill_db):
