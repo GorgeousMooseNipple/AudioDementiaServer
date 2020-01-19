@@ -84,14 +84,15 @@ def add_songs_to_db(target_folder, db):
                     title=album_title,
                     cover_small=cover_small,
                     cover_medium=cover_medium)
-                album.artists.extend(
-                    [a for a in artists if a not in album.artists]
-                    )
-                db.session.add(album)
-
         except ConnectionError as e:
             print(repr(e))
             album = Album(title='unknown')
+
+        album.artists.extend(
+            [a for a in artists if a not in album.artists]
+        )
+
+        db.session.add(album)
 
         if album and genres_titles:
             genres = []

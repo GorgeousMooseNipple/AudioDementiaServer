@@ -116,15 +116,17 @@ class Song(db.Model, BaseModel):
         return [s.to_dict() for s in songs]
 
     @staticmethod
-    def get_by_artist_title(title):
+    def get_by_artist_title(title, per_page=20, last=0):
         search = f'%{title}%'
 
         try:
-            # TODO: come up with something better
-            q1 = Song.query.join(Artist).filter(Artist.title.ilike(search))
-            q2 = Song.query.join(Album).join(AlbumArtist).join(Artist)\
-                .filter(Artist.title.ilike(search))
-            songs = set(q1).union(set(q2))
+            query = Song.query.outerjoin(Album).outerjoin(AlbumArtist)\
+                .join(
+                    Artist,
+                    (Artist.id == Song.artist_id) |
+                    (Artist.id == AlbumArtist.id)
+                    ).filter(Artist.title.ilike(search))
+            songs = paginate(query, per_page, key=Song.id, last=last)
         except SQLAlchemyError:
             return None
 

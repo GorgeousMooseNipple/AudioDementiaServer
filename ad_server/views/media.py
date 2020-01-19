@@ -166,10 +166,10 @@ def songs_by_artist(title):
     if title == '' or title.isspace():
         return msg.errors.bad_request('Title parameter is an empty string')
 
-    # per_page = request.args.get('per_page') or 20
-    # last_id = request.args.get('last_id') or 0
+    per_page = request.args.get('per_page') or 20
+    last_id = request.args.get('last_id') or 0
 
-    songs = Song.get_by_artist_title(title)
+    songs = Song.get_by_artist_title(title, per_page=per_page, last=last_id)
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
