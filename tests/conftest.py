@@ -220,7 +220,8 @@ def user_with_playlist(fill_db):
     db.session.commit()
 
     songs = Song.query.all()
-    playlist.songs.extend(songs)
+    for s in songs:
+        playlist.add_song(s)
     db.session.commit()
 
     yield user, access_token, refresh_token

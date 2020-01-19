@@ -50,6 +50,7 @@ def top_genres():
     return msg.success(f'Top {limit} genres', genres=top_genres)
 
 
+# P d
 @media.route('/songs/playlist', methods=['GET'])
 @required_params({'id': int})
 def playlist_songs(id):
@@ -61,7 +62,10 @@ def playlist_songs(id):
     if not playlist:
         return msg.errors.not_found('Playlist not found')
 
-    songs = playlist.get_songs()
+    per_page = request.args.get('per_page') or 20
+    last_id = request.args.get('last_id') or 0
+
+    songs = playlist.get_songs(per_page=per_page, last=last_id)
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
@@ -74,6 +78,7 @@ def playlist_songs(id):
         songs=songs)
 
 
+# P d
 @media.route('/songs/genre', methods=['GET'])
 @required_params({'id': int})
 def genre_songs(id):
@@ -85,7 +90,10 @@ def genre_songs(id):
     if not genre:
         return msg.errors.not_found('Genre not found')
 
-    songs = genre.get_songs()
+    per_page = request.args.get('per_page') or 20
+    last_id = request.args.get('last_id') or 0
+
+    songs = genre.get_songs(per_page=per_page, last=last_id)
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
@@ -122,6 +130,7 @@ def album_songs(id):
     )
 
 
+# P d
 @media.route('/songs/search', methods=['GET'])
 @required_params({'title': str})
 def songs_by_title(title):
@@ -131,7 +140,10 @@ def songs_by_title(title):
     if title == '' or title.isspace():
         return msg.errors.bad_request('Title parameter is an empty string')
 
-    songs = Song.get_by_title(title)
+    per_page = request.args.get('per_page') or 20
+    last_id = request.args.get('last_id') or 0
+
+    songs = Song.get_by_title(title, per_page=per_page, last=last_id)
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
@@ -144,6 +156,7 @@ def songs_by_title(title):
     )
 
 
+# P
 @media.route('/songs/artist', methods=['GET'])
 @required_params({'title': str})
 def songs_by_artist(title):
@@ -152,6 +165,9 @@ def songs_by_artist(title):
     """
     if title == '' or title.isspace():
         return msg.errors.bad_request('Title parameter is an empty string')
+
+    # per_page = request.args.get('per_page') or 20
+    # last_id = request.args.get('last_id') or 0
 
     songs = Song.get_by_artist_title(title)
 
@@ -195,6 +211,7 @@ def stream_song(id):
         content_type='audio/mpeg')
 
 
+# P d
 @media.route('/albums/search', methods=['GET'])
 @required_params({'title': str})
 def albums_by_title(title):
@@ -204,7 +221,10 @@ def albums_by_title(title):
     if title == '' or title.isspace():
         return msg.errors.bad_request('Title parameter is an empty string')
 
-    albums = Album.get_by_title(title)
+    per_page = request.args.get('per_page') or 20
+    last_id = request.args.get('last_id') or 0
+
+    albums = Album.get_by_title(title, per_page=per_page, last=last_id)
 
     if albums is None:
         return msg.errors.internal_error('Error occured. Please try later')
@@ -315,15 +335,12 @@ def add_song_to_playlist(playlist_id, song_id):
         return msg.errors.not_found(
             f'Song with id {song_id} is not found')
 
-    # if song in playlist.songs:
-    #     return msg.errors
-
     try:
         playlist.add_song(song)
         db.session.commit()
         return msg.success(
-            f'Song with id {song_id} was added to '
-            f'playlist with id {playlist_id}')
+            f'Song {song.title} was added to '
+            f'playlist {playlist.title}')
     except SQLAlchemyError:
         db.session.rollback()
         return msg.errors.internal_error('Internal error.')
@@ -358,11 +375,14 @@ def delete_song_from_playlist(playlist_id, song_id):
         playlist.songs.remove(song)
         db.session.commit()
         return msg.success(
-            f'Song with id {song_id} was deleted from '
-            f'playlist with id {playlist_id}')
+            f'Song {song.title} was deleted from '
+            f'playlist {playlist.title}')
     except SQLAlchemyError:
         db.session.rollback()
         return msg.errors.internal_error('Internal error.')
+    # If song is not in playlist playlist.songs.remove will raise
+    except ValueError:
+        return msg.errors.bad_request('This song is already not in playlist')
 
 
 @media.route('/playlists/delete', methods=['DELETE'])

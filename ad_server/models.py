@@ -13,6 +13,11 @@ import base64
 # __table__ = meta.tables['tablename']
 
 
+# Key based pagination
+def paginate(query, per_page, key, last=0):
+    return query.filter(key > last).order_by(key).limit(per_page)
+
+
 class BaseModel:
     def to_dict(self):
         """
@@ -99,11 +104,12 @@ class Song(db.Model, BaseModel):
         return d
 
     @staticmethod
-    def get_by_title(title):
-        criteria = f'%{title}%'
+    def get_by_title(title, per_page=20, last=0):
+        search = f'%{title}%'
 
         try:
-            songs = Song.query.filter(Song.title.ilike(criteria))
+            query = Song.query.filter(Song.title.ilike(search))
+            songs = paginate(query, per_page, key=Song.id, last=last)
         except SQLAlchemyError:
             return None
 
@@ -111,13 +117,13 @@ class Song(db.Model, BaseModel):
 
     @staticmethod
     def get_by_artist_title(title):
-        criteria = f'%{title}%'
+        search = f'%{title}%'
 
         try:
             # TODO: come up with something better
-            q1 = Song.query.join(Artist).filter(Artist.title.ilike(criteria))
+            q1 = Song.query.join(Artist).filter(Artist.title.ilike(search))
             q2 = Song.query.join(Album).join(AlbumArtist).join(Artist)\
-                .filter(Artist.title.ilike(criteria))
+                .filter(Artist.title.ilike(search))
             songs = set(q1).union(set(q2))
         except SQLAlchemyError:
             return None
@@ -175,7 +181,7 @@ class Album(db.Model, BaseModel):
         # Selects album sorted
         try:
             top_albums = sess.query(Album).join(Album.songs)\
-                .group_by(Album).order_by(-p).limit(limit).all()
+                .group_by(Album).order_by(-p).limit(limit)
         except SQLAlchemyError:
             sess.rollback()
             return None
@@ -192,11 +198,13 @@ class Album(db.Model, BaseModel):
         return songs
 
     @staticmethod
-    def get_by_title(title):
-        criteria = f'%{title}%'
+    def get_by_title(title, per_page=20, last=0):
+        search = f'%{title}%'
 
         try:
-            albums = Album.query.filter(Album.title.ilike(criteria))
+            query = Album.query.filter(Album.title.ilike(search))
+            albums = paginate(
+                query, per_page=per_page, key=Album.id, last=last)
         except SQLAlchemyError:
             return None
 
@@ -230,12 +238,13 @@ class Genre(db.Model, BaseModel):
 
         return [g.to_dict() for g in top_genres]
 
-    def get_songs(self):
+    def get_songs(self, per_page=20, last=0):
         sess = db.session
 
         try:
-            songs = sess.query(Song).join(Album).join(AlbumGenre)\
+            query = sess.query(Song).join(Album).join(AlbumGenre)\
                 .filter(AlbumGenre.genre_id == self.id)
+            songs = paginate(query, per_page, key=Song.id, last=last)
         except SQLAlchemyError:
             sess.rollback()
             return None
@@ -263,19 +272,19 @@ class Playlist(db.Model, BaseModel):
         lazy='dynamic'
         )
 
-    def get_songs(self):
+    def get_songs(self, per_page=20, last=0):
         """
         Returns list of songs from playlist in dict representation.
         This list is sorted by song position in playlist
         """
-        sess = db.session
-
         try:
-            songs = sess.query(Song).join(Playlist.songs)\
-                .filter(Playlist.id == self.id)\
-                .join(PlaylistSong).order_by(PlaylistSong.song_position).all()
+            songs = paginate(
+                self.songs,
+                per_page,
+                key=PlaylistSong.song_position,
+                last=last
+                )
         except SQLAlchemyError:
-            sess.rollback()
             return None
         return [s.to_dict() for s in songs]
 
@@ -284,8 +293,8 @@ class Playlist(db.Model, BaseModel):
         Adds song to playlist
         """
         # Calculate song position in this playlist
-        song_position = Playlist.query.filter_by(id=self.id)\
-            .join(PlaylistSong).count() + 1
+        song_position = PlaylistSong.query\
+            .filter_by(playlist_id=self.id).count() + 1
 
         # Create new row in secondary relational table
         ps = PlaylistSong(

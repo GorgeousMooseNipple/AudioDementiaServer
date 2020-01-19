@@ -385,3 +385,56 @@ def test_delete_other_user_playlist(test_client_json,
 
     assert response.status_code == 403
     assert response.json.get('message') == 'Operation is forbidden'
+
+
+def test_pagination(test_client, fill_db):
+    """
+    Tests pagination of returned results.
+    """
+    title = 's'
+    # Songs containing 'a' in title
+    search_songs = Song.get_by_title(title)
+    first_page = len(search_songs) // 2
+    second_page = len(search_songs) - first_page
+
+    first_response = test_client.get(
+        url_for('media.songs_by_title'),
+        query_string={
+            'title': title,
+            'per_page': first_page,
+            'last_id': 0
+            }
+    )
+
+    assert first_response.status_code == 200
+
+    first_songs = first_response.json.get('songs')
+    assert first_songs
+    assert len(first_songs) == first_page
+
+    # Songs should be sorted by id ascending
+    assert first_songs == sorted(first_songs, key=lambda s: s['id'])
+
+    # Id of the last song from list of songs
+    last_id = first_songs[-1]['id']
+
+    second_response = test_client.get(
+        url_for('media.songs_by_title'),
+        query_string={
+            'title': title,
+            'per_page': second_page,
+            'last_id': last_id
+            }
+    )
+
+    assert second_response.status_code == 200
+
+    second_songs = second_response.json.get('songs')
+    assert second_songs
+    assert len(second_songs) == second_page
+
+    first_ids = [s['id'] for s in first_songs]
+    second_ids = [s['id'] for s in second_songs]
+
+    # Check if a the songs from first and second queries is different
+    assert set(first_ids).isdisjoint(set(second_ids))
