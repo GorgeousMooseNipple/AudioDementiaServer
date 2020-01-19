@@ -128,7 +128,7 @@ class Song(db.Model, BaseModel):
                 .join(
                     Artist,
                     (Artist.id == Song.artist_id) |
-                    (Artist.id == AlbumArtist.id)
+                    (Artist.id == AlbumArtist.artist_id)
                     ).filter(Artist.title.ilike(search))
             songs = paginate(query, per_page, key=Song.id, last=last)
         except SQLAlchemyError:
