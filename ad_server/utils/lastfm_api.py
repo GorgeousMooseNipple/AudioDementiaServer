@@ -49,4 +49,4 @@ def search_on_lastfm(searchfor='track', **kwargs):
             f'Request (url {response.url}) with parameters: {params} '
             f'ended up with an error:\n{jresponse["error"]}'
         )
-    return jresponse.get('album')
+    return jresponse.get(searchfor)
