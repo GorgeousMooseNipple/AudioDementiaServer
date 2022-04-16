@@ -62,6 +62,7 @@ def add_songs_to_db(target_folder, db):
             songfile.tags.get('album')[0]
 
         try:
+            # Try get album title from song data
             if not album_title:
                 track_info = search_on_lastfm(
                     searchfor='track', track=title, artist=artists_titles[0]
@@ -71,6 +72,7 @@ def add_songs_to_db(target_folder, db):
             album = Album.query.filter_by(title=album_title)\
                 .join(Album.artists).filter_by(title=artist_title).first()
 
+            # If album is not in database
             if not album:
                 album_info = search_on_lastfm(
                     searchfor='album',

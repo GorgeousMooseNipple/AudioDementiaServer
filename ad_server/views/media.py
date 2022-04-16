@@ -50,7 +50,6 @@ def top_genres():
     return msg.success(f'Top {limit} genres', genres=top_genres)
 
 
-# P d
 @media.route('/songs/playlist', methods=['GET'])
 @required_params({'id': int})
 def playlist_songs(id):
@@ -78,7 +77,6 @@ def playlist_songs(id):
         songs=songs)
 
 
-# P d
 @media.route('/songs/genre', methods=['GET'])
 @required_params({'id': int})
 def genre_songs(id):
@@ -130,7 +128,6 @@ def album_songs(id):
     )
 
 
-# P d
 @media.route('/songs/search', methods=['GET'])
 @required_params({'title': str})
 def songs_by_title(title):
@@ -156,7 +153,6 @@ def songs_by_title(title):
     )
 
 
-# P
 @media.route('/songs/artist', methods=['GET'])
 @required_params({'title': str})
 def songs_by_artist(title):
@@ -211,7 +207,6 @@ def stream_song(id):
         content_type='audio/mpeg')
 
 
-# P d
 @media.route('/albums/search', methods=['GET'])
 @required_params({'title': str})
 def albums_by_title(title):
