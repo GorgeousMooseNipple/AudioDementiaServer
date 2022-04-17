@@ -1,7 +1,9 @@
 import os
+from dotenv import load_dotenv
 
 
 PWD = os.path.dirname(os.path.abspath(__file__))
+load_dotenv()
 
 
 class Config:
