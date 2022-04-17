@@ -25,7 +25,7 @@ def generate_token(user_id, expires_in=timedelta(minutes=30)):
         'exp': datetime.utcnow() + delta
         }
     secret = current_app.config.get('SECRET_KEY')
-    return jwt.encode(payload, secret, algorithm='HS256').decode('utf-8')
+    return jwt.encode(payload, secret, algorithm='HS256')
 
 
 def validate_token(token):
