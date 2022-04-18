@@ -9,4 +9,5 @@ htmlcov
 test_media
 .env
 html*
+*.log
 
