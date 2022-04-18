@@ -1,10 +1,12 @@
+import os
+import base64
+
 from ad_server import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from flask_sqlalchemy import BaseQuery
 from sqlalchemy.exc import SQLAlchemyError
-import os
-import base64
+from ad_server.views.error import RefreshTokenError
 
 
 # from sqlalchemy import MetaData
@@ -95,15 +97,21 @@ class Song(db.Model, BaseModel):
             'duration': self.duration,
         }
 
+        cover_small = None
+        cover_medium = None
         artists = []
         if self.album:
             artists.extend([a.title for a in self.album.artists])
+            cover_small = self.album.cover_small
+            cover_medium = self.album.cover_medium
         else:
             artists.append(self.artist.title)
-        album = self.album.title if self.album else 'unknown'
+        album_title = self.album.title if self.album else 'unknown'
 
         d['artists'] = artists
-        d['album'] = album
+        d['album'] = album_title
+        d['cover_small'] = cover_small
+        d['cover_medium'] = cover_medium
 
         return d
 
@@ -176,6 +184,10 @@ class Album(db.Model, BaseModel):
     def to_dict(self):
         d = super().to_dict()
         d['genres'] = [g.title for g in self.genres]
+        artists = []
+        for artist in self.artists:
+            artists.append(artist.title)
+        d['artists'] = artists
         return d
 
     @staticmethod
@@ -278,6 +290,15 @@ class Playlist(db.Model, BaseModel):
         lazy='dynamic'
         )
 
+    def to_dict(self):
+        song_count = Playlist.query.get(self.id).songs.count()
+        d = {
+            'id': self.id,
+            'title': self.title,
+            'song_count': song_count,
+        }
+        return d
+
     def get_songs(self, per_page=20, last=0):
         """
         Returns list of songs from playlist in dict representation.
@@ -343,13 +364,23 @@ class RefreshToken(db.Model):
         nullable=False, unique=True)
 
     @staticmethod
+    def create_or_get(user_id, expires_in=timedelta(weeks=24)):
+        # If already exists for this user
+        refresh_token = RefreshToken.query.join(User).filter_by(id=user_id).first()
+        if refresh_token:
+            return refresh_token.token
+            # raise RefreshTokenError('Refresh token is already given to this user')
+        return RefreshToken.create(user_id, expires_in) 
+
+
+    @staticmethod
     def create(user_id, expires_in=timedelta(weeks=24)):
         if isinstance(expires_in, int):
             delta = timedelta(weeks=expires_in)
         elif isinstance(expires_in, timedelta):
             delta = expires_in
         else:
-            raise TypeError(
+            raise RefreshTokenError(
                 'expires_in value must be either integer in weeks or'
                 'datetime.timedelta'
             )

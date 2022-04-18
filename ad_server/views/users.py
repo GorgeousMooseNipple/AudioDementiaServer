@@ -10,6 +10,14 @@ users = Blueprint('users', __name__)
 
 @users.route('/register', methods=['POST'])
 def register_user():
+    """
+    _server_/auth/register POST
+    Registers new app user.
+    
+    :param str login: new user's login POST request parameter 
+    :param str pass: new user's password POST request parameter
+    :return: response with fields _status_ and _message_
+    """
     json_request = request.json
     login = json_request.get('login')
     password = json_request.get('pass')
@@ -28,18 +36,33 @@ def register_user():
 @users.route('/token', methods=['GET'])
 @basic_auth.login_required
 def get_token():
+    """
+    _server_/auth/token GET
+    Generates access token for user. Must be provided with Authorization header in format:
+    Authorization: Basic login:pass
+
+    :return: response with fields _status_, _message_, _access_token and _refresh_token_
+    """
     user = g.current_user
     access_token = generate_token(user.id)
-    refreh_token = RefreshToken.create(user.id)
+    refreh_token = RefreshToken.create_or_get(user.id)
     db.session.commit()
     return msg.success(
         message='Access token retrieved',
+        id=user.id,
         access_token=access_token,
         refresh_token=refreh_token)
 
 
 @users.route('/token/refresh', methods=['POST'])
 def refresh_token():
+    """
+    _server_/auth/token/refresh POST
+    Uses refresh token to generate new valid token for user.
+
+    :param str refresh_token: refresh token must be present in request field refresh_token
+    :return: response with fields _status_, _message_ and _access_token_
+    """
     json_request = request.json
     refresh_token = json_request.get('refresh_token')
     if not refresh_token:
@@ -47,15 +70,22 @@ def refresh_token():
             'You should provide refresh token for this call')
     refresh_token_obj = RefreshToken.valid_token(refresh_token)
     if not refresh_token_obj:
-        return msg.errors.unauthorized('Provided token is not valid')
+        return msg.errors.unauthorized('Provided refresh token is not valid')
     access_token = generate_token(refresh_token_obj.user_id)
     return msg.success(
-        message='Access token retrieved',
+        message='New access token generated',
         access_token=access_token)
 
 
 @users.route('/token/revoke', methods=['POST'])
 def revoke_token():
+    """
+    _server_/auth/token/revoke POST
+    Revokes refresh token.
+
+    :param str refresh_token: refresh token must be present in request field refresh_token
+    :return: response with fields _status_ and _message_
+    """
     json_request = request.json
     refresh_token = json_request.get('refresh_token')
     if not refresh_token:
