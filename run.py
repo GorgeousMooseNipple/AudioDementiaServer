@@ -8,7 +8,8 @@ from ad_server.models import (
     Playlist,
     PlaylistSong,
     AlbumArtist,
-    AlbumGenre
+    AlbumGenre,
+    RefreshToken,
     )
 
 
@@ -28,5 +29,6 @@ def get_shell_context():
         'Playlist': Playlist,
         'PlaylistSong': PlaylistSong,
         'AlbumGenre': AlbumGenre,
-        'AlbumArtist': AlbumArtist
+        'AlbumArtist': AlbumArtist,
+        'RefreshToken': RefreshToken,
         }
