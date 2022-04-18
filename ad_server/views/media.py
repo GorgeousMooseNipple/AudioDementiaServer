@@ -40,7 +40,10 @@ def required_params(required):
 @media.route('/genres/top', methods=['GET'])
 def top_genres():
     """
+    _server_/media/genres/top GET
     Returns list of genres sorted by popularity
+
+    :return: response with fields _status_ and _message_
     """
     limit = 5
     top_genres = Genre.get_top(limit)
@@ -54,7 +57,13 @@ def top_genres():
 @required_params({'id': int})
 def playlist_songs(id):
     """
-    Returns songs for playlist specified by id
+    _server_/media/songs/playlist GET
+    Returns songs for playlist specified by id.
+
+    :param int id: id of a playlist
+    :param last_id: pagination - id of the last received item from list on a previous page
+    :param per_page: pagination - items per page
+    :return: response with fields _status_, _message_ and _songs_ - list of songs
     """
     playlist = Playlist.query.get(id)
 
@@ -81,7 +90,13 @@ def playlist_songs(id):
 @required_params({'id': int})
 def genre_songs(id):
     """
+    _server_/media/songs/genre GET
     Returns songs with matching genre
+
+    :param int id: id of a genre
+    :param last_id: pagination - id of the last received item from list on a previous page
+    :param per_page: pagination - items per page
+    :return: response with fields _status_, _message_ and _songs_ - list of songs
     """
     genre = Genre.query.get(id)
 
@@ -108,7 +123,13 @@ def genre_songs(id):
 @required_params({'id': int})
 def album_songs(id):
     """
+    _server_/media/songs/album GET
     Returns songs from an album
+
+    :param int id: id of an album
+    :param last_id: pagination - id of the last received item from list on a previous page
+    :param per_page: pagination - items per page
+    :return: response with fields _status_, _message_ and _songs_ - list of songs
     """
     album = Album.query.get(id)
 
@@ -132,7 +153,13 @@ def album_songs(id):
 @required_params({'title': str})
 def songs_by_title(title):
     """
-    Returns all songs matching the specified title
+    _server_/media/songs/search GET
+    Returns all songs matching the specified title.
+
+    :param str title: title of a song
+    :param last_id: pagination - id of the last received item from list on a previous page
+    :param per_page: pagination - items per page
+    :return: response with fields _status_, _message_ and _songs_ - list of fitting songs
     """
     if title == '' or title.isspace():
         return msg.errors.bad_request('Title parameter is an empty string')
@@ -157,7 +184,13 @@ def songs_by_title(title):
 @required_params({'title': str})
 def songs_by_artist(title):
     """
-    Returns all songs by specified artist
+    _server_/media/songs/artits GET
+    Returns all songs by specified artist.
+
+    :param str title: title of an artist
+    :param last_id: pagination - id of the last received item from list on a previous page
+    :param per_page: pagination - items per page
+    :return: response with fields _status_, _message_ and _songs_ - list of songs
     """
     if title == '' or title.isspace():
         return msg.errors.bad_request('Title parameter is an empty string')
@@ -182,7 +215,11 @@ def songs_by_artist(title):
 @required_params({'id': int})
 def stream_song(id):
     """
-    Streams song specified by id
+    _server_/media/songs/play GET
+    Streams song specified by id.
+
+    :param int id: id of a song
+    :return: response with content type 'audio/mpeg' which contains stream of an audio file
     """
 
     # Get song filepath from db and increment listens count
@@ -211,7 +248,13 @@ def stream_song(id):
 @required_params({'title': str})
 def albums_by_title(title):
     """
-    Returns all albums matching specified title
+    _server_/media/albums/search GET
+    Returns all albums matching specified title.
+
+    :param str title: searched title of an album
+    :param last_id: pagination - id of the last received item from list on a previous page
+    :param per_page: pagination - items per page
+    :return: response with fields _status_, _message_ and _albums_ - list of albums
     """
     if title == '' or title.isspace():
         return msg.errors.bad_request('Title parameter is an empty string')
@@ -227,7 +270,7 @@ def albums_by_title(title):
         return msg.errors.not_found(f'Albums not found with title {title}')
 
     return msg.success(
-        f'Abums mathing title {title}',
+        f'Abums matching title {title}',
         albums=albums
     )
 
@@ -235,7 +278,10 @@ def albums_by_title(title):
 @media.route('albums/top', methods=['GET'])
 def top_albums():
     """
+    _server_/media/albums/top GET
     Returns top albums sorted by listens
+
+    :return: response with fields _status_ and _message_
     """
     limit = 5
     top_albums = Album.get_top(limit)
@@ -249,7 +295,11 @@ def top_albums():
 @token_auth.login_required
 def user_playlists():
     """
-    Returns playlists of current user of the one specified by username
+    _server_/media/playlists/user GET
+    Returns playlists of current user of the one specified by username.
+    Requires valid token in an Authorization header in a form Authorization: Bearer <token>
+
+    :return: response with fields _status_, _message_ and _playlists_ - list of playlists
     """
     # If user id is specified in request - get that user's playlists
     username = request.values.get('username')
@@ -283,9 +333,12 @@ def user_playlists():
 @required_params({'title': str})
 def create_playlist(title):
     """
+    _server_/media/playlists/add PUT
     Adds new playlist for user
-    Method POST
-    Parameters: new playlist title
+    Requires valid token in an Authorization header in a form Authorization: Bearer <token>
+
+    :param str title: title of a new platlist
+    :return: response with fields _status_ and _message_
     """
 
     if title == '' or title.isspace():
@@ -310,9 +363,13 @@ def create_playlist(title):
 @required_params({'playlist_id': int, 'song_id': int})
 def add_song_to_playlist(playlist_id, song_id):
     """
-    Adds song to a playlist
-    Method POST
-    Parameters: playlist id and song id
+    _server_/media/playlists/add/song PUT
+    Adds song to a playlist.
+    Requires valid token in an Authorization header in a form Authorization: Bearer <token>
+
+    :param int playlist_id: id of a playlist to which a song should be added
+    :param int songs_id: id of a song
+    :return: response with fields _status_ and _message_
     """
     user = g.current_user
     playlist = Playlist.query.get(playlist_id)
@@ -346,9 +403,13 @@ def add_song_to_playlist(playlist_id, song_id):
 @required_params({'playlist_id': int, 'song_id': int})
 def delete_song_from_playlist(playlist_id, song_id):
     """
-    Deletes song from playlist
-    Method DELETE
-    Parameters: playlist id and song id
+    _server_/media/playlists/delete/song DELETE
+    Delete song from a playlist.
+    Requires valid token in an Authorization header in a form Authorization: Bearer <token>
+
+    :param int playlist_id: id of a playlist from which a song should be deleted
+    :param int songs_id: id of a song
+    :return: response with fields _status_ and _message_
     """
     user = g.current_user
     playlist = Playlist.query.get(playlist_id)
@@ -385,9 +446,12 @@ def delete_song_from_playlist(playlist_id, song_id):
 @required_params({'id': int})
 def delete_playlist(id):
     """
-    Deletes playlist
-    Method DELETE
-    Parameters: playlist id
+    _server_/media/playlists/delete DELETE
+    Delete playlist.
+    Requires valid token in an Authorization header in a form Authorization: Bearer <token>
+
+    :param int id: id of a playlist which should be deleted
+    :return: response with fields _status_ and _message_
     """
     user = g.current_user
     playlist = Playlist.query.get(id)
