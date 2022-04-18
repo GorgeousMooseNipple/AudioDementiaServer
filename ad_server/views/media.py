@@ -110,8 +110,9 @@ def genre_songs(id):
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
-    elif len(songs) == 0:
-        return msg.errors.not_found(f'Songs not found for genre {genre.title}')
+    # If 0 song found and it's not a request for another page of songs
+    elif len(songs) == 0 and last_id == 0:
+        return msg.errors.not_found(f'Songs not found for this genre')
 
     return msg.success(
         f'Songs from genre {genre.title}',
@@ -171,7 +172,8 @@ def songs_by_title(title):
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
-    elif len(songs) == 0:
+    # If 0 song found and it's not a request for another page of songs
+    elif len(songs) == 0 and last_id == 0:
         return msg.errors.not_found(f'Songs not found with title {title}')
 
     return msg.success(
@@ -202,8 +204,9 @@ def songs_by_artist(title):
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
-    elif len(songs) == 0:
-        return msg.errors.not_found(f'Songs not found for artist {title}')
+    # If 0 song found and it's not a request for another page of songs
+    elif len(songs) == 0 and last_id == 0:
+        return msg.errors.not_found(f'Songs not found for this artist')
 
     return msg.success(
         f'Songs by artist matching title {title}',
@@ -318,9 +321,6 @@ def user_playlists():
 
     if playlists is None:
         return msg.errors.internal_error('Error occured. Please try later')
-    elif len(playlists) == 0:
-        return msg.errors.not_found(
-            f'Playlists not found for user {user.login}')
 
     return msg.success(
         f'Playlists of user {user.login}',
@@ -355,7 +355,7 @@ def create_playlist(title):
         return msg.errors.internal_error(
             'Unsuccesfull creation of playlist. Internal error')
 
-    return msg.success(f'New playlist {title} have been created.')
+    return msg.success(f'New playlist {title} have been created.', **playlist.to_dict())
 
 
 @media.route('/playlists/add/song', methods=['PUT'])
