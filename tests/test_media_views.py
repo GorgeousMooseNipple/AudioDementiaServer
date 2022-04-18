@@ -257,9 +257,9 @@ def test_get_users_playlists(test_client, user_with_playlist, fill_db):
         query_string={'username': username}
     )
 
-    assert response.status_code == 404
-    assert response.json.get('message') ==\
-        f'Playlists not found for user {username}'
+    # No playlists
+    assert response.status_code == 200
+    assert len(response.json.get('playlists')) == 0
 
 
 def test_create_new_playlist(test_client_json, user_with_playlist, fill_db):

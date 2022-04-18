@@ -23,3 +23,4 @@ class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URI')
     SONGS_URLS = os.environ.get('SONGS_URLS')
+    PRESERVE_CONTEXT_ON_EXCEPTION = False

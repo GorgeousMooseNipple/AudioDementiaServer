@@ -102,7 +102,7 @@ def test_refresh_token(test_client_json, user_with_tokens):
 
     assert response.status_code == 401
     assert response.json.get('message') == \
-        'Provided token is not valid'
+        'Provided refresh token is not valid'
 
     response = test_client_json.post(
         url_for('users.refresh_token'),
