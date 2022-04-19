@@ -77,7 +77,7 @@ def playlist_songs(id):
 
     if songs is None:
         return msg.errors.internal_error('Error occured. Please try later')
-    elif len(songs) == 0:
+    elif len(songs) == 0 and last_id == 0:
         return msg.errors.not_found(
             f'Songs not found for playlist {playlist.title}')
 
@@ -269,7 +269,7 @@ def albums_by_title(title):
 
     if albums is None:
         return msg.errors.internal_error('Error occured. Please try later')
-    elif len(albums) == 0:
+    elif len(albums) == 0 and last_id == 0:
         return msg.errors.not_found(f'Albums not found with title {title}')
 
     return msg.success(
@@ -288,7 +288,7 @@ def top_albums():
     """
     limit = 5
     top_albums = Album.get_top(limit)
-    if not top_albums:
+    if top_albums is None:
         return msg.errors.internal_error('Error occured. Please try later')
 
     return msg.success(f'Top {limit} albums', albums=top_albums)
