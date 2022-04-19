@@ -4,9 +4,7 @@ from flask import g, current_app
 from datetime import datetime, timedelta
 import ad_server.views.messages as msg
 import jwt
-import logging
 
-logging.basicConfig(filename='token_auth.log', level=logging.DEBUG)
 
 basic_auth = HTTPBasicAuth()
 token_auth = HTTPTokenAuth()
@@ -34,7 +32,6 @@ def validate_token(token):
     secret = current_app.config.get('SECRET_KEY')
     payload = jwt.decode(token, secret, algorithms='HS256')
     id = payload.get('id')
-    logging.debug(f'User id is {id}')
     return User.query.get(int(id))
 
 
@@ -56,15 +53,11 @@ def basic_auth_error():
 
 @token_auth.verify_token
 def verify_token(token):
-    logging.debug(f'Token: {token}')
     if token:
         try:
             g.current_user = validate_token(token)
-            if g.current_user is None:
-                logging.debug('Token is not valid')
             return g.current_user is not None
         except (jwt.InvalidTokenError, jwt.ExpiredSignatureError) as e:
-            logging.debug('Token is invalid')
             g.token_exception = e
             return False
     else:
