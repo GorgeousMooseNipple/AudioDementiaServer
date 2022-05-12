@@ -37,10 +37,10 @@ def required_params(required):
     return decorator
 
 
-@media.route('/genres/top', methods=['GET'])
+@media.route('/genre/top', methods=['GET'])
 def top_genres():
     """
-    _server_/media/genres/top GET
+    _server_/media/genre/top GET
     Returns list of genres sorted by popularity
 
     :return: response with fields _status_ and _message_
@@ -53,11 +53,11 @@ def top_genres():
     return msg.success(f'Top {limit} genres', genres=top_genres)
 
 
-@media.route('/songs/playlist', methods=['GET'])
+@media.route('/playlist/songs', methods=['GET'])
 @required_params({'id': int})
 def playlist_songs(id):
     """
-    _server_/media/songs/playlist GET
+    _server_/media/playlist/songs GET
     Returns songs for playlist specified by id.
 
     :param int id: id of a playlist
@@ -86,11 +86,11 @@ def playlist_songs(id):
         songs=songs)
 
 
-@media.route('/songs/genre', methods=['GET'])
+@media.route('/genre/songs', methods=['GET'])
 @required_params({'id': int})
 def genre_songs(id):
     """
-    _server_/media/songs/genre GET
+    _server_/media/genre/songs GET
     Returns songs with matching genre
 
     :param int id: id of a genre
@@ -120,11 +120,11 @@ def genre_songs(id):
     )
 
 
-@media.route('/songs/album', methods=['GET'])
+@media.route('/album/songs', methods=['GET'])
 @required_params({'id': int})
 def album_songs(id):
     """
-    _server_/media/songs/album GET
+    _server_/media/album/songs GET
     Returns songs from an album
 
     :param int id: id of an album
@@ -150,11 +150,11 @@ def album_songs(id):
     )
 
 
-@media.route('/songs/search', methods=['GET'])
+@media.route('/song/title', methods=['GET'])
 @required_params({'title': str})
 def songs_by_title(title):
     """
-    _server_/media/songs/search GET
+    _server_/media/song/title GET
     Returns all songs matching the specified title.
 
     :param str title: title of a song
@@ -182,11 +182,11 @@ def songs_by_title(title):
     )
 
 
-@media.route('/songs/artist', methods=['GET'])
+@media.route('/song/artist', methods=['GET'])
 @required_params({'title': str})
 def songs_by_artist(title):
     """
-    _server_/media/songs/artits GET
+    _server_/media/song/artit GET
     Returns all songs by specified artist.
 
     :param str title: title of an artist
@@ -214,11 +214,11 @@ def songs_by_artist(title):
     )
 
 
-@media.route('/songs/play', methods=['GET'])
+@media.route('/song/play', methods=['GET'])
 @required_params({'id': int})
 def stream_song(id):
     """
-    _server_/media/songs/play GET
+    _server_/media/song/play GET
     Streams song specified by id.
 
     :param int id: id of a song
@@ -247,11 +247,11 @@ def stream_song(id):
         content_type='audio/mpeg')
 
 
-@media.route('/albums/search', methods=['GET'])
+@media.route('/album/title', methods=['GET'])
 @required_params({'title': str})
 def albums_by_title(title):
     """
-    _server_/media/albums/search GET
+    _server_/media/album/title GET
     Returns all albums matching specified title.
 
     :param str title: searched title of an album
@@ -278,10 +278,10 @@ def albums_by_title(title):
     )
 
 
-@media.route('albums/top', methods=['GET'])
+@media.route('album/top', methods=['GET'])
 def top_albums():
     """
-    _server_/media/albums/top GET
+    _server_/media/album/top GET
     Returns top albums sorted by listens
 
     :return: response with fields _status_ and _message_
@@ -294,11 +294,11 @@ def top_albums():
     return msg.success(f'Top {limit} albums', albums=top_albums)
 
 
-@media.route('/playlists/user', methods=['GET'])
+@media.route('/user/playlists', methods=['GET'])
 @token_auth.login_required
 def user_playlists():
     """
-    _server_/media/playlists/user GET
+    _server_/media/user/playlists GET
     Returns playlists of current user of the one specified by username.
     Requires valid token in an Authorization header in a form Authorization: Bearer <token>
 
@@ -328,12 +328,12 @@ def user_playlists():
     )
 
 
-@media.route('/playlists/add', methods=['PUT'])
+@media.route('/playlist/new', methods=['PUT'])
 @token_auth.login_required
 @required_params({'title': str})
 def create_playlist(title):
     """
-    _server_/media/playlists/add PUT
+    _server_/media/playlist/new PUT
     Adds new playlist for user
     Requires valid token in an Authorization header in a form Authorization: Bearer <token>
 
@@ -358,12 +358,12 @@ def create_playlist(title):
     return msg.success(f'New playlist {title} have been created.', **playlist.to_dict())
 
 
-@media.route('/playlists/add/song', methods=['PUT'])
+@media.route('/playlist/song/add', methods=['PUT'])
 @token_auth.login_required
 @required_params({'playlist_id': int, 'song_id': int})
 def add_song_to_playlist(playlist_id, song_id):
     """
-    _server_/media/playlists/add/song PUT
+    _server_/media/playlist/song/add PUT
     Adds song to a playlist.
     Requires valid token in an Authorization header in a form Authorization: Bearer <token>
 
@@ -398,12 +398,12 @@ def add_song_to_playlist(playlist_id, song_id):
         return msg.errors.internal_error('Internal error.')
 
 
-@media.route('/playlists/delete/song', methods=['DELETE'])
+@media.route('/playlist/song/delete', methods=['DELETE'])
 @token_auth.login_required
 @required_params({'playlist_id': int, 'song_id': int})
 def delete_song_from_playlist(playlist_id, song_id):
     """
-    _server_/media/playlists/delete/song DELETE
+    _server_/media/playlist/song/delete DELETE
     Delete song from a playlist.
     Requires valid token in an Authorization header in a form Authorization: Bearer <token>
 
@@ -441,12 +441,12 @@ def delete_song_from_playlist(playlist_id, song_id):
         return msg.errors.bad_request('This song is already not in playlist')
 
 
-@media.route('/playlists/delete', methods=['DELETE'])
+@media.route('/playlist/delete', methods=['DELETE'])
 @token_auth.login_required
 @required_params({'id': int})
 def delete_playlist(id):
     """
-    _server_/media/playlists/delete DELETE
+    _server_/media/playlist/delete DELETE
     Delete playlist.
     Requires valid token in an Authorization header in a form Authorization: Bearer <token>
 

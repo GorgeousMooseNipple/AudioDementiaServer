@@ -8,10 +8,10 @@ import ad_server.views.messages as msg
 users = Blueprint('users', __name__)
 
 
-@users.route('/register', methods=['POST'])
+@users.route('/user/new', methods=['POST'])
 def register_user():
     """
-    _server_/auth/register POST
+    _server_/user/new POST
     Registers new app user.
     
     :param str login: new user's login POST request parameter 
@@ -33,11 +33,11 @@ def register_user():
     return msg.success('Successful registration')
 
 
-@users.route('/token', methods=['GET'])
+@users.route('/token/new', methods=['GET'])
 @basic_auth.login_required
 def get_token():
     """
-    _server_/auth/token GET
+    _server_/token/new GET
     Generates access token for user. Must be provided with Authorization header in format:
     Authorization: Basic login:pass
 
