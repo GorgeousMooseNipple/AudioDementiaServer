@@ -6,6 +6,7 @@ from flask import Response
 from functools import wraps
 from sqlalchemy.exc import SQLAlchemyError
 import ad_server.views.messages as msg
+import os
 
 
 media = Blueprint('media', __name__)
@@ -230,21 +231,24 @@ def stream_song(id):
     if not song_file:
         return msg.errors.bad_request('Invalid id provided')
     db.session.commit()
+    file_size = os.path.getsize(song_file)
 
     # Generator function. Yields chuncks of the file into Response
     def stream_file(filepath):
         # What is the optimal chunk size for this?
-        chunk_size = 512
+        chunk_size = 1024
         with open(filepath, 'rb') as f:
             chunk = f.read(chunk_size)
             while chunk:
                 yield chunk
                 chunk = f.read(chunk_size)
 
-    return Response(
+    response = Response(
         stream_file(song_file),
         status=200,
-        content_type='audio/mpeg')
+        mimetype='audio/mpeg')
+    response.headers['Content-Length'] = file_size
+    return response
 
 
 @media.route('/album/title', methods=['GET'])
