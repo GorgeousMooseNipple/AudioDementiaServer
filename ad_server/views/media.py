@@ -37,6 +37,9 @@ def required_params(required):
         return check_params
     return decorator
 
+@media.route('/ping', methods=['GET'])
+def ping():
+    return Response(status=200)
 
 @media.route('/genre/top', methods=['GET'])
 def top_genres():
