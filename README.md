@@ -31,13 +31,13 @@ Besides [Flask][flask] as a base web framework, this application uses:
 * Rework application files structure
 * Provide a comfortable way to upload new audio files. So far it just uses python script to add files from a local folder.
 
-[flask]: [https://github.com/pallets/flask]
-[flask-http-auth]: [https://github.com/miguelgrinberg/Flask-HTTPAuth]
-[flask-sqlalchemy]: [https://github.com/pallets-eco/flask-sqlalchemy]
-[flask-migrate]: [https://github.com/miguelgrinberg/Flask-Migrate]
-[last-fm-api]: [https://www.last.fm/api]
-[postgres]: [https://www.postgresql.org/]
-[pyjwt]: [https://github.com/jpadilla/pyjwt]
-[requests]: [https://github.com/psf/requests]
-[mutagen]: [https://github.com/quodlibet/mutagen]
-[pytest]: [https://github.com/pytest-dev/pytest]
+[flask]: https://github.com/pallets/flask
+[flask-http-auth]: https://github.com/miguelgrinberg/Flask-HTTPAuth
+[flask-sqlalchemy]: https://github.com/pallets-eco/flask-sqlalchemy
+[flask-migrate]: https://github.com/miguelgrinberg/Flask-Migrate
+[last-fm-api]: https://www.last.fm/api
+[postgres]: https://www.postgresql.org/
+[pyjwt]: https://github.com/jpadilla/pyjwt
+[requests]: https://github.com/psf/requests
+[mutagen]: https://github.com/quodlibet/mutagen
+[pytest]: https://github.com/pytest-dev/pytest
